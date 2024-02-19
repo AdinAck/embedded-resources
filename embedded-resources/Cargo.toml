@@ -1,11 +1,12 @@
 [package]
 name = "embedded-resources"
-version = "0.1.0"
+version = "0.1.2"
 edition = "2021"
 authors = ["Adin Ackerman <adinackerman@gmail.com>"]
 description = "Define peripheral usage in a single place for use everywhere."
+repository = "https://github.com/adinack/embedded-resources"
+readme = "../README.md"
 license-file = "../LICENSE"
-repository = "https://github.com/adinac/embedded-resources"
 
 [dependencies]
 Inflector = "0.11.4"

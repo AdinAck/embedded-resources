@@ -5,7 +5,7 @@ mod dummy;
 mod tests {
     use std::any::{Any, TypeId};
 
-    use crate::dummy::{Peripherals, PA11};
+    use crate::dummy::Peripherals;
 
     use super::dummy::{self as peripherals, PA12, PA2, PA3, PA4, TIM2, USB_OTG_FS};
     use embedded_resources::resource_group;
@@ -13,12 +13,12 @@ mod tests {
     #[resource_group]
     #[allow(non_snake_case)] // outer attribute
     struct UsbResources {
-        DP: PA12,
+        dp: PA12,
         dm: peripherals::PA11, // user-provided type is flexible
         usb: USB_OTG_FS,
     }
 
-    #[resource_group]
+    #[resource_group(no_aliases)]
     struct LedResources {
         r: PA2,
         g: PA3,
@@ -41,8 +41,8 @@ mod tests {
         assert_eq!(leds.tim2.type_id(), TypeId::of::<TIM2>());
         assert_eq!(leds.tim2.type_id(), TypeId::of::<PWMTimer>()); // verify type alias
 
-        assert_eq!(usb.DP.type_id(), TypeId::of::<PA12>());
-        assert_eq!(usb.dm.type_id(), TypeId::of::<PA11>());
-        assert_eq!(usb.usb.type_id(), TypeId::of::<USB_OTG_FS>());
+        assert_eq!(usb.dp.type_id(), TypeId::of::<Dp>());
+        assert_eq!(usb.dm.type_id(), TypeId::of::<Dm>());
+        assert_eq!(usb.usb.type_id(), TypeId::of::<Usb>());
     }
 }

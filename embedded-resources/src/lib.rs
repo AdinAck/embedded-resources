@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
 use proc_macro2::Span;
-use quote::quote;
+use quote::{format_ident, quote};
 use syn::{Attribute, Ident, ItemStruct, ItemType, Meta, Type};
 
 /// Mark a struct as a resource for extraction from the `Peripherals` instance.
@@ -12,17 +12,17 @@ use syn::{Attribute, Ident, ItemStruct, ItemType, Meta, Type};
 ///
 /// #[resource_group]
 /// struct UsbResources {
-///     dp: PA12,
+///     dp: PA12, // type aliases are generated (`type Dp = PA12` in this case)
 ///     dm: PA11,
 ///     usb: USB,
 /// }
 ///
-/// #[resource_group]
+/// #[resource_group(no_aliases)] // only custom aliases are generated
 /// struct LedResources {
 ///     r: PA2,
 ///     g: PA3,
 ///     b: PA4,
-///     #[alias = PWMTimer] // make an alias for this resource
+///     #[alias = PWMTimer] // specify a custom alias for this resource
 ///     tim2: TIM2,
 /// }
 ///
@@ -53,13 +53,29 @@ use syn::{Attribute, Ident, ItemStruct, ItemType, Meta, Type};
 /// }
 /// ```
 #[proc_macro_attribute]
-pub fn resource_group(_args: TokenStream, item: TokenStream) -> TokenStream {
+pub fn resource_group(args: TokenStream, item: TokenStream) -> TokenStream {
     let mut s: ItemStruct = syn::parse2(item.into()).expect("Resource item must be a struct.");
+
+    let attr: Option<Ident> = syn::parse2(args.into()).unwrap();
+
+    let generate_aliases = match attr {
+        None => true,
+        Some(ident) => {
+            assert_eq!(
+                ident.to_string(),
+                "no_aliases",
+                "Expected identifier \"no_aliases\"."
+            );
+            false
+        }
+    };
 
     let mut aliases = Vec::new();
 
     // search for "alias" attribute and remove/record for rendering
     s.fields.iter_mut().for_each(|field| {
+        let mut custom_alias = false;
+
         field.attrs = field
             .attrs
             .iter()
@@ -73,6 +89,7 @@ pub fn resource_group(_args: TokenStream, item: TokenStream) -> TokenStream {
                             let alias_stmt: ItemType =
                                 syn::parse2(quote! { type #alias_value = #alias_type; }).unwrap();
                             aliases.push(alias_stmt);
+                            custom_alias = true;
                             return false;
                         }
                     }
@@ -81,6 +98,19 @@ pub fn resource_group(_args: TokenStream, item: TokenStream) -> TokenStream {
                 true
             })
             .collect();
+
+        if generate_aliases && !custom_alias {
+            let alias_value = format_ident!(
+                "{}",
+                inflector::cases::classcase::to_class_case(
+                    field.ident.as_ref().unwrap().to_string().as_str()
+                )
+            );
+            let alias_type = &field.ty;
+            let alias_stmt: ItemType =
+                syn::parse2(quote! { type #alias_value = #alias_type; }).unwrap();
+            aliases.push(alias_stmt);
+        }
     });
 
     let use_macro_ident = Ident::new(

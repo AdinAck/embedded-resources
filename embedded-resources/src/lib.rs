@@ -80,6 +80,11 @@ pub fn resource_group(args: TokenStream, item: TokenStream) -> TokenStream {
 
     let vis = s.vis.clone();
 
+    // propagate visibility from struct to fields
+    s.fields
+        .iter_mut()
+        .for_each(|field| field.vis = vis.clone());
+
     let mut aliases = Vec::new();
 
     // search for "alias" attribute and remove/record for rendering

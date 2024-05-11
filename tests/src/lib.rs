@@ -12,7 +12,7 @@ mod tests {
 
     #[resource_group]
     #[allow(non_snake_case)] // outer attribute
-    struct UsbResources {
+    pub(crate) struct UsbResources {
         dp: PA12,
         dm: peripherals::PA11, // user-provided type is flexible
         usb: USB_OTG_FS,

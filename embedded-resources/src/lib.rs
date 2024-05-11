@@ -1,7 +1,15 @@
 use proc_macro::TokenStream;
 use proc_macro2::Span;
-use quote::{format_ident, quote};
-use syn::{Attribute, Ident, ItemStruct, ItemType, Meta, Type};
+use quote::{format_ident, quote, ToTokens};
+use syn::{Attribute, Ident, ItemStruct, ItemType, Meta, Type, Visibility};
+
+fn generate_alias_stmt(
+    vis: &Visibility,
+    alias_value: &impl ToTokens,
+    alias_type: &impl ToTokens,
+) -> ItemType {
+    syn::parse2(quote! { #vis type #alias_value = #alias_type; }).unwrap()
+}
 
 /// Mark a struct as a resource for extraction from the `Peripherals` instance.
 ///
@@ -11,7 +19,7 @@ use syn::{Attribute, Ident, ItemStruct, ItemType, Meta, Type};
 /// use embedded_resources::resource_group;
 ///
 /// #[resource_group]
-/// struct UsbResources {
+/// pub(crate) struct UsbResources { // `pub(crate)` enables resources to be used across a project hierarchy
 ///     dp: PA12, // type aliases are generated (`type Dp = PA12` in this case)
 ///     dm: PA11,
 ///     usb: USB,
@@ -70,6 +78,8 @@ pub fn resource_group(args: TokenStream, item: TokenStream) -> TokenStream {
         }
     };
 
+    let vis = s.vis.clone();
+
     let mut aliases = Vec::new();
 
     // search for "alias" attribute and remove/record for rendering
@@ -84,11 +94,7 @@ pub fn resource_group(args: TokenStream, item: TokenStream) -> TokenStream {
                 if let Meta::NameValue(alias) = &attr.meta {
                     if let Some(ident) = alias.path.get_ident() {
                         if ident.to_string().eq("alias") {
-                            let alias_value = &alias.value;
-                            let alias_type = &field.ty;
-                            let alias_stmt: ItemType =
-                                syn::parse2(quote! { type #alias_value = #alias_type; }).unwrap();
-                            aliases.push(alias_stmt);
+                            aliases.push(generate_alias_stmt(&vis, &alias.value, &field.ty));
                             custom_alias = true;
                             return false;
                         }
@@ -100,16 +106,16 @@ pub fn resource_group(args: TokenStream, item: TokenStream) -> TokenStream {
             .collect();
 
         if generate_aliases && !custom_alias {
-            let alias_value = format_ident!(
-                "{}",
-                inflector::cases::classcase::to_class_case(
-                    field.ident.as_ref().unwrap().to_string().as_str()
-                )
-            );
-            let alias_type = &field.ty;
-            let alias_stmt: ItemType =
-                syn::parse2(quote! { type #alias_value = #alias_type; }).unwrap();
-            aliases.push(alias_stmt);
+            aliases.push(generate_alias_stmt(
+                &vis,
+                &format_ident!(
+                    "{}",
+                    inflector::cases::classcase::to_class_case(
+                        field.ident.as_ref().unwrap().to_string().as_str()
+                    )
+                ),
+                &field.ty,
+            ));
         }
     });
 
@@ -117,6 +123,11 @@ pub fn resource_group(args: TokenStream, item: TokenStream) -> TokenStream {
         inflector::cases::snakecase::to_snake_case(s.ident.to_string().as_str()).as_str(),
         Span::call_site(),
     );
+    let macro_vis = if let Visibility::Restricted(_) = vis {
+        Some(quote! { #vis use #use_macro_ident; })
+    } else {
+        None
+    };
 
     let ident = &s.ident;
     let field_idents: Vec<Ident> = s
@@ -165,6 +176,8 @@ pub fn resource_group(args: TokenStream, item: TokenStream) -> TokenStream {
                 }
             };
         }
+
+        #macro_vis
     }
     .into()
 }

@@ -1,7 +1,7 @@
 [package]
 name = "tests"
-version = "0.1.2"
+version = "0.2.0"
 edition = "2021"
 
 [dev-dependencies]
-embedded-resources = { path = "../embedded-resources" }
+embedded-resources = { path = "../embedded-resources", features = ["_test"] }

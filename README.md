@@ -21,18 +21,18 @@ use embedded_resources::resource_group;
 
 #[resource_group]
 struct UsbResources {
-    dp: Peri<'static, PA12>,
-    dm: Peri<'static, PA11>,
-    usb: Peri<'static, USB>,
+    dp: PA12,
+    dm: PA11,
+    usb: USB,
 }
 
 #[resource_group]
 struct LedResources {
-    r: Peri<'static, PA2>,
-    g: Peri<'static, PA3>,
-    b: Peri<'static, PA4>,
+    r: PA2,
+    g: PA3,
+    b: PA4,
     #[alias = PWMTimer] // make an alias for this resource
-    tim2: Peri<'static, TIM2>,
+    tim2: TIM2,
 }
 
 #[embassy_executor::task]
@@ -45,7 +45,7 @@ async fn setup_leds<'a>(r: LedResources) -> SimplePWM<'a, PWMTimer> {
 }
 
 #[embassy_executor::task]
-async fn led_task(rgb_pwm: SimplePWM<'a, PWMTimer>) {
+async fn led_task(rgb_pwm: SimplePWM<'static, PWMTimer>) {
     // use rgb_pwm                       ^ alias used here
 }
 
@@ -67,3 +67,10 @@ This has a few advantages: you only need to write the specific pin names like
 argument for each task instead of potentially very many, and you don't need
 to write out lots of code to split the resources up. If you're targetting
 multiple different hardware versions, you can use `#[cfg]` to change pin allocations in just one place.
+
+When adding `embedded-resources` as a dependency, make sure to enable the appropriate
+ecosystem feature for your project:
+
+```toml
+embedded-resources = { version = "0.2.0", features = ["stm32"] }
+```

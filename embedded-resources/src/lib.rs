@@ -1,7 +1,7 @@
 use proc_macro::TokenStream;
 use proc_macro2::Span;
 use quote::{format_ident, quote, ToTokens};
-use syn::{Attribute, Ident, ItemStruct, ItemType, Meta, Type, Visibility};
+use syn::{Attribute, Ident, ItemStruct, ItemType, Meta, PathArguments, Type, Visibility};
 
 fn generate_alias_stmt(
     vis: &Visibility,
@@ -146,9 +146,19 @@ pub fn resource_group(args: TokenStream, item: TokenStream) -> TokenStream {
         .iter()
         .cloned()
         .map(|field| {
-            if let Type::Path(ty) = field.ty {
-                let ident = &ty.path.segments.last().unwrap().ident;
-                syn::parse2(quote! { #ident }).unwrap()
+            if let Type::Path(ref ty) = field.ty {
+                let seg = &ty.path.segments.last().unwrap();
+                match &seg.arguments {
+                    PathArguments::None => {
+                        let ident = &seg.ident;
+                        syn::parse2(quote! { #ident }).unwrap()
+                    }
+                    PathArguments::AngleBracketed(generic_args) => {
+                        let ident = generic_args.args.last().unwrap();
+                        syn::parse2(quote! { #ident }).unwrap()
+                    }
+                    PathArguments::Parenthesized(_) => todo!(),
+                }
             } else {
                 field.ty
             }

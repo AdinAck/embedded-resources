@@ -5,7 +5,7 @@ mod dummy;
 mod tests {
     use std::any::{Any, TypeId};
 
-    use crate::dummy::Peripherals;
+    use crate::dummy::{Peri, Peripherals};
 
     use super::dummy::{self as peripherals, PA12, PA2, PA3, PA4, TIM2, USB_OTG_FS};
     use embedded_resources::resource_group;
@@ -35,14 +35,14 @@ mod tests {
         let leds = led_resources!(p);
         let usb = usb_resources!(p);
 
-        assert_eq!(leds.r.type_id(), TypeId::of::<PA2>());
-        assert_eq!(leds.g.type_id(), TypeId::of::<PA3>());
-        assert_eq!(leds.b.type_id(), TypeId::of::<PA4>());
-        assert_eq!(leds.tim2.type_id(), TypeId::of::<TIM2>());
-        assert_eq!(leds.tim2.type_id(), TypeId::of::<PWMTimer>()); // verify type alias
+        assert_eq!(leds.r.type_id(), TypeId::of::<Peri<PA2>>());
+        assert_eq!(leds.g.type_id(), TypeId::of::<Peri<PA3>>());
+        assert_eq!(leds.b.type_id(), TypeId::of::<Peri<PA4>>());
+        assert_eq!(leds.tim2.type_id(), TypeId::of::<Peri<TIM2>>());
+        assert_eq!(leds.tim2.type_id(), TypeId::of::<Peri<PWMTimer>>()); // verify type alias
 
-        assert_eq!(usb.dp.type_id(), TypeId::of::<Dp>());
-        assert_eq!(usb.dm.type_id(), TypeId::of::<Dm>());
-        assert_eq!(usb.usb.type_id(), TypeId::of::<Usb>());
+        assert_eq!(usb.dp.type_id(), TypeId::of::<Peri<Dp>>());
+        assert_eq!(usb.dm.type_id(), TypeId::of::<Peri<Dm>>());
+        assert_eq!(usb.usb.type_id(), TypeId::of::<Peri<Usb>>());
     }
 }

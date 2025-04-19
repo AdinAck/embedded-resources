@@ -15,23 +15,24 @@ Resources type aliases may be generated, so function signatures can
 refer to that type as well and any changes are propagated.
 
 ```rust
+use embassy_stm32::Peri;
 use embassy_stm32::peripherals::*;
 use embedded_resources::resource_group;
 
 #[resource_group]
 struct UsbResources {
-    dp: PA12,
-    dm: PA11,
-    usb: USB,
+    dp: Peri<'static, PA12>,
+    dm: Peri<'static, PA11>,
+    usb: Peri<'static, USB>,
 }
 
 #[resource_group]
 struct LedResources {
-    r: PA2,
-    g: PA3,
-    b: PA4,
+    r: Peri<'static, PA2>,
+    g: Peri<'static, PA3>,
+    b: Peri<'static, PA4>,
     #[alias = PWMTimer] // make an alias for this resource
-    tim2: TIM2,
+    tim2: Peri<'static, TIM2>,
 }
 
 #[embassy_executor::task]

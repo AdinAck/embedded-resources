@@ -178,7 +178,12 @@ pub fn resource_group(args: TokenStream, item: TokenStream) -> TokenStream {
     } else if cfg!(feature = "_test") {
         parse_quote! { Peri }
     } else {
-        unreachable!()
+        return syn::Error::new(
+            Span::call_site(),
+            "Exactly one ecosystem feature must be specified.",
+        )
+        .to_compile_error()
+        .into();
     };
 
     s.fields.iter_mut().for_each(|field| {

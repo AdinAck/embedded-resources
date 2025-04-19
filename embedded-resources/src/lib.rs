@@ -1,7 +1,10 @@
 use proc_macro::TokenStream;
 use proc_macro2::Span;
 use quote::{format_ident, quote, ToTokens};
-use syn::{Attribute, Ident, ItemStruct, ItemType, Meta, PathArguments, Type, Visibility};
+use syn::{
+    parse_quote, Attribute, Ident, ItemStruct, ItemType, Meta, Path, PathArguments, Type,
+    Visibility,
+};
 
 fn generate_alias_stmt(
     vis: &Visibility,
@@ -167,6 +170,21 @@ pub fn resource_group(args: TokenStream, item: TokenStream) -> TokenStream {
     let field_attrs: Vec<Vec<Attribute>> =
         s.fields.iter().cloned().map(|field| field.attrs).collect();
     let doc = format!("Extract `{}` from a `Peripherals` instance.", ident);
+
+    let peri_path: Path = if cfg!(feature = "stm32") {
+        parse_quote! { ::embassy_stm32::Peri }
+    } else if cfg!(feature = "nrf") {
+        parse_quote! { ::embassy_nrf::Peri }
+    } else if cfg!(feature = "_test") {
+        parse_quote! { Peri }
+    } else {
+        unreachable!()
+    };
+
+    s.fields.iter_mut().for_each(|field| {
+        let ty = &field.ty;
+        field.ty = parse_quote! { #peri_path<#ty> };
+    });
 
     quote! {
         #(

@@ -4,4 +4,4 @@ version = "0.1.2"
 edition = "2021"
 
 [dev-dependencies]
-embedded-resources = { path = "../embedded-resources" }
+embedded-resources = { path = "../embedded-resources", features = ["_test"] }

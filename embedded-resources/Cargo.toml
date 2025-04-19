@@ -16,3 +16,10 @@ syn = { version = "2.0.48", features = ["full"] }
 
 [lib]
 proc-macro = true
+
+[features]
+stm32 = []
+nrf = []
+# TODO: more
+
+_test = []

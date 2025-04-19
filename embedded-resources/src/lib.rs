@@ -94,7 +94,6 @@ pub fn resource_group(args: TokenStream, item: TokenStream) -> TokenStream {
         field.attrs = field
             .attrs
             .iter()
-            .cloned()
             .filter(|attr| {
                 if let Meta::NameValue(alias) = &attr.meta {
                     if let Some(ident) = alias.path.get_ident() {
@@ -108,6 +107,7 @@ pub fn resource_group(args: TokenStream, item: TokenStream) -> TokenStream {
 
                 true
             })
+            .cloned()
             .collect();
 
         if generate_aliases && !custom_alias {
@@ -156,10 +156,7 @@ pub fn resource_group(args: TokenStream, item: TokenStream) -> TokenStream {
         .collect();
     let field_attrs: Vec<Vec<Attribute>> =
         s.fields.iter().cloned().map(|field| field.attrs).collect();
-    let doc = format!(
-        "Extract `{}` from a `Peripherals` instance.",
-        ident.to_string()
-    );
+    let doc = format!("Extract `{}` from a `Peripherals` instance.", ident);
 
     quote! {
         #(

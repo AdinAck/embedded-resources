@@ -23,7 +23,7 @@ dependencies = [
 
 [[package]]
 name = "embedded-resources"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "Inflector",
  "proc-macro2",
@@ -103,7 +103,7 @@ dependencies = [
 
 [[package]]
 name = "tests"
-version = "0.2.0"
+version = "0.2.1"
 dependencies = [
  "embedded-resources",
 ]

@@ -1,9 +1,12 @@
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 
-pub struct Peri<P> {
+use core::marker::PhantomData;
+
+pub struct Peri<'a, P> {
     #[expect(unused)]
     p: P,
+    _lifetime: PhantomData<&'a mut P>,
 }
 
 pub(crate) struct PA2;
@@ -15,25 +18,46 @@ pub(crate) struct TIM2;
 pub(crate) struct USB_OTG_FS;
 
 pub(crate) struct Peripherals {
-    pub(crate) PA2: Peri<PA2>,
-    pub(crate) PA3: Peri<PA3>,
-    pub(crate) PA4: Peri<PA4>,
-    pub(crate) PA11: Peri<PA11>,
-    pub(crate) PA12: Peri<PA12>,
-    pub(crate) TIM2: Peri<TIM2>,
-    pub(crate) USB_OTG_FS: Peri<USB_OTG_FS>,
+    pub(crate) PA2: Peri<'static, PA2>,
+    pub(crate) PA3: Peri<'static, PA3>,
+    pub(crate) PA4: Peri<'static, PA4>,
+    pub(crate) PA11: Peri<'static, PA11>,
+    pub(crate) PA12: Peri<'static, PA12>,
+    pub(crate) TIM2: Peri<'static, TIM2>,
+    pub(crate) USB_OTG_FS: Peri<'static, USB_OTG_FS>,
 }
 
 impl Peripherals {
     pub(crate) const fn new() -> Self {
         Self {
-            PA2: Peri { p: PA2 },
-            PA3: Peri { p: PA3 },
-            PA4: Peri { p: PA4 },
-            PA11: Peri { p: PA11 },
-            PA12: Peri { p: PA12 },
-            TIM2: Peri { p: TIM2 },
-            USB_OTG_FS: Peri { p: USB_OTG_FS },
+            PA2: Peri::<'static> {
+                p: PA2,
+                _lifetime: PhantomData,
+            },
+            PA3: Peri::<'static> {
+                p: PA3,
+                _lifetime: PhantomData,
+            },
+            PA4: Peri::<'static> {
+                p: PA4,
+                _lifetime: PhantomData,
+            },
+            PA11: Peri::<'static> {
+                p: PA11,
+                _lifetime: PhantomData,
+            },
+            PA12: Peri::<'static> {
+                p: PA12,
+                _lifetime: PhantomData,
+            },
+            TIM2: Peri::<'static> {
+                p: TIM2,
+                _lifetime: PhantomData,
+            },
+            USB_OTG_FS: Peri::<'static> {
+                p: USB_OTG_FS,
+                _lifetime: PhantomData,
+            },
         }
     }
 }

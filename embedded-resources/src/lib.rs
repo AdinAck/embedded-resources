@@ -188,7 +188,7 @@ pub fn resource_group(args: TokenStream, item: TokenStream) -> TokenStream {
 
     s.fields.iter_mut().for_each(|field| {
         let ty = &field.ty;
-        field.ty = parse_quote! { #peri_path<#ty> };
+        field.ty = parse_quote! { #peri_path<'static, #ty> };
     });
 
     quote! {
